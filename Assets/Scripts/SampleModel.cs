@@ -4,32 +4,47 @@ using UnityEngine;
 using UniRx;
 using System;
 
-public enum PlayerState
-{
-    Stopped,
-    Playing
-}
 public class SampleModel : MonoBehaviour
 {
-    private PlayerState PlayerState;
-    private float PlaybackTime;
-    private bool IsLoop = true;
+    public readonly float MusicLength = 3f;
+    public ReactiveProperty<PlayerState> CurrentPlayerState = new ReactiveProperty<PlayerState>();
+    public ReactiveProperty<float> PlaybackTime = new ReactiveProperty<float>();
+    public new ReactiveProperty<bool> IsLoop = new ReactiveProperty<bool>();
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        var rp = new ReactiveProperty<int>(15);
-        rp.Value = 20;
-        var currentValue = rp.Value;
-        Debug.Log(currentValue);
-        rp.Subscribe(x => Debug.Log(x));
-
-        rp.Value = 30;
-    }
-
-    // Update is called once per frame
     void Update()
     {
+        if (CurrentPlayerState.Value == PlayerState.Playing)
+        {
+            this.PlaybackTime.Value += Time.deltaTime;
 
+            if (MusicLength < this.PlaybackTime.Value)
+            {
+                if (IsLoop.Value)
+                {
+                    this.PlaybackTime.Value = 0f;
+                }
+                else
+                {
+                    this.PlaybackTime.Value = MusicLength;
+                    Stop();
+                }
+            }
+
+        }
+    }
+
+    public void Play()
+    {
+        this.CurrentPlayerState.Value = PlayerState.Playing;
+    }
+
+    public void Stop()
+    {
+        this.CurrentPlayerState.Value = PlayerState.Stopped;
+    }
+
+    public void SetLoop(bool isLoop)
+    {
+        this.IsLoop.Value = isLoop;
     }
 }
